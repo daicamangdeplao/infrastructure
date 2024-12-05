@@ -1,0 +1,62 @@
+version: '3.1'
+
+services:
+
+  postgresql161:
+    image: postgres:16.1
+    container_name: postgres-16.1
+    restart: always
+    environment:
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata161:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  postgresql1316:
+    image: postgres:13.16
+    container_name: postgres-13.16
+    restart: always
+    environment:
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata1316:/var/lib/postgresql/data
+    ports:
+      - "5439:5432"
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql-2019
+    restart: always
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: yourStrong(!)Password
+      MSSQL_PID: Standard
+    volumes:
+      - mssql2019:/var/lib/mssql2019/data
+    ports:
+      - "1433:1433"
+
+  nexus:
+    image: sonatype/nexus3
+    container_name: nexus3
+    restart: always
+    ports:
+      - "8111:8081"
+
+  pdadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=dung.nguyen@code4you.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+    ports:
+      - "8001:80"
+
+volumes:
+  pgdata161:
+  pgdata1316:
+  mssql2019:
