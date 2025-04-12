@@ -46,15 +46,15 @@ services:
     ports:
       - "8111:8081"
 
-  pdadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=dung.nguyen@code4you.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
-      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
-    ports:
-      - "8001:80"
+#  pdadmin:
+#    image: dpage/pgadmin4
+#    restart: always
+#    environment:
+#      - PGADMIN_DEFAULT_EMAIL=dung.nguyen@code4you.com
+#      - PGADMIN_DEFAULT_PASSWORD=admin
+#      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+#    ports:
+#      - "8001:80"
 
 volumes:
   pgdata161:
