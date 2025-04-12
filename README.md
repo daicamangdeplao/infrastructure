@@ -8,10 +8,13 @@ If  all your projects had a Dockerfile and docker-compose.yml then "new develope
 network:
 
 
-## Components
+## Services
 
-* postgresql
-* dbeaver: docker run --name cloudbeaver -d --rm -ti -p 8080:8978 -v /opt/cloudbeaver/workspace dbeaver/cloudbeaver:latest
+* postgresql161
+* postgresql1316
+* mssql
+* nexus
+
 
 ## References
 
