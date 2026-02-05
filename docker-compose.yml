@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.8'
 
 services:
 
@@ -7,45 +7,100 @@ services:
     container_name: postgres-16.1
     restart: always
     environment:
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata161:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   postgresql1316:
     image: postgres:13.16
     container_name: postgres-13.16
     restart: always
     environment:
-      POSTGRES_USERNAME: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata1316:/var/lib/postgresql/data
     ports:
       - "5439:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: mssql-2019
     restart: always
     environment:
-      ACCEPT_EULA: Y
-      MSSQL_SA_PASSWORD: yourStrong(!)Password
-      MSSQL_PID: Standard
+      ACCEPT_EULA: ${ACCEPT_EULA}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      MSSQL_PID: ${MSSQL_PID}
     volumes:
-      - mssql2019:/var/lib/mssql2019/data
+      - mssql2019:/var/opt/mssql
     ports:
       - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${MSSQL_SA_PASSWORD} -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
 
   nexus:
     image: sonatype/nexus3
     container_name: nexus3
     restart: always
+    volumes:
+      - nexus-data:/nexus-data
     ports:
       - "8111:8081"
-      
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 2G
+
   sonarqube:
     image: sonarqube:25.9.0.112764-community
     container_name: sonarqube-25.9.0.112764
@@ -54,21 +109,50 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
     ports:
       - "9000:9000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/api/system/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 2G
 
-#  pdadmin:
+#  pgadmin:
 #    image: dpage/pgadmin4
+#    container_name: pgadmin4
 #    restart: always
 #    environment:
-#      - PGADMIN_DEFAULT_EMAIL=dung.nguyen@code4you.com
-#      - PGADMIN_DEFAULT_PASSWORD=admin
-#      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+#      PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 10
 #    ports:
 #      - "8001:80"
+#    healthcheck:
+#      test: ["CMD-SHELL", "wget -O - http://localhost:80/misc/ping || exit 1"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '1'
+#          memory: 1G
+#        reservations:
+#          cpus: '0.25'
+#          memory: 256M
 
 volumes:
   pgdata161:
   pgdata1316:
   mssql2019:
+  nexus-data:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_extensions:
