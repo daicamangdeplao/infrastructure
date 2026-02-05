@@ -45,6 +45,15 @@ services:
     restart: always
     ports:
       - "8111:8081"
+      
+  sonarqube:
+    image: sonarqube:25.9.0.112764-community
+    container_name: sonarqube-25.9.0.112764
+    restart: always
+    volumes:
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    ports:
+      - "9000:9000"
 
 #  pdadmin:
 #    image: dpage/pgadmin4
@@ -60,3 +69,6 @@ volumes:
   pgdata161:
   pgdata1316:
   mssql2019:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
