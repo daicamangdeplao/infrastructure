@@ -124,6 +124,18 @@ services:
           cpus: '0.5'
           memory: 2G
 
+  rabbitmq:
+    image: rabbitmq:4.2.3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP protocol port
+      - "15672:15672"   # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
 #  pgadmin:
 #    image: dpage/pgadmin4
 #    container_name: pgadmin4
@@ -156,3 +168,4 @@ volumes:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_extensions:
+  rabbitmq-data:
