@@ -85,6 +85,9 @@ Run only the services you need by specifying their names:
 # PostgreSQL 16.1 only
 docker-compose up -d postgresql161
 
+# PostgreSQL 16.1 only with custom build
+docker-compose up -d --build postgresql161
+
 # PostgreSQL 13.16 only
 docker-compose up -d postgresql1316
 
@@ -148,6 +151,32 @@ Port: 1433
 Username: sa
 Password: (MSSQL_SA_PASSWORD from .env)
 ```
+
+## PostgreSQL Extensions
+
+To add PostgreSQL extensions (e.g., pgvector for vector similarity search), you have two options:
+
+### Option 1: Install Directly in Running Container
+
+Connect to the PostgreSQL container and create the extension:
+
+```bash
+# Connect to PostgreSQL
+docker exec -it postgres-16.1 psql -U postgres
+
+# Create the extension (inside psql)
+CREATE EXTENSION vector;
+```
+
+### Option 2: Include in Application Schema
+
+Add the extension to your application's `schema.sql` file (recommended for Spring Boot projects):
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+This ensures the extension is created automatically when your application initializes the database.
 
 ### Tools
 
