@@ -2,6 +2,19 @@ version: '3.8'
 
 services:
 
+  postgresml210:
+    image: ghcr.io/postgresml/postgresml:2.10.0
+    container_name: postgresml210
+    restart: always
+    volumes:
+      - postgresml_data:/var/lib/postgresql
+    ports:
+      - "5434:5432"
+      - "8001:8000"
+    stdin_open: true
+    tty: true
+    command: sudo -u ${POSTGRESML_USER} psql -d postgresml
+
   postgresql161:
     build:
       context: ./postgres-16.1
@@ -123,6 +136,7 @@ services:
 #          memory: 256M
 
 volumes:
+  postgresml_data:
   pgdata161:
   pgdata1316:
   mssql2019:

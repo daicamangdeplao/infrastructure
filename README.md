@@ -10,14 +10,15 @@ individually or together based on your needs.
 
 ## Services
 
-| Service              | Version          | Port(s)     | Description                                |
-|----------------------|------------------|-------------|--------------------------------------------|
-| **PostgreSQL 16.1**  | 16.1             | 5432        | Primary PostgreSQL database (custom build) |
-| **PostgreSQL 13.16** | 13.16            | 5439        | Legacy PostgreSQL database                 |
-| **MS SQL Server**    | 2019-latest      | 1433        | Microsoft SQL Server                       |
-| **Nexus**            | 3 (latest)       | 8111        | Artifact repository manager                |
-| **SonarQube**        | 25.9.0.112764    | 9000        | Code quality and security scanner          |
-| **RabbitMQ**         | 4.2.3-management | 5672, 15672 | Message broker with management UI          |
+| Service              | Version          | Port(s)        | Description                                      |
+|----------------------|------------------|----------------|--------------------------------------------------|
+| **PostgresML 2.10**  | 2.10.0           | 5434, 8001     | PostgreSQL + ML extension with dashboard         |
+| **PostgreSQL 16.1**  | 16.1             | 5432           | Primary PostgreSQL database (custom build)       |
+| **PostgreSQL 13.16** | 13.16            | 5439           | Legacy PostgreSQL database                       |
+| **MS SQL Server**    | 2019-latest      | 1433           | Microsoft SQL Server                             |
+| **Nexus**            | 3 (latest)       | 8111           | Artifact repository manager                      |
+| **SonarQube**        | 25.9.0.112764    | 9000           | Code quality and security scanner                |
+| **RabbitMQ**         | 4.2.3-management | 5672, 15672    | Message broker with management UI                |
 
 ## Prerequisites
 
@@ -30,6 +31,9 @@ individually or together based on your needs.
 Create a `.env` file in the root directory with the following variables:
 
 ```env
+# PostgresML Configuration
+POSTGRESML_USER=postgresml
+
 # PostgreSQL Configuration
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_postgres_password
@@ -82,6 +86,9 @@ Run only the services you need by specifying their names:
 #### Database Only
 
 ```bash
+# PostgresML 2.10 only
+docker-compose up -d postgresml210
+
 # PostgreSQL 16.1 only
 docker-compose up -d postgresql161
 
@@ -125,6 +132,17 @@ docker-compose up -d nexus sonarqube
 
 ### Databases
 
+**PostgresML 2.10:**
+
+```
+Host:     localhost
+Port:     5434
+Database: postgresml
+Username: postgresml (from .env POSTGRESML_USER)
+```
+
+Dashboard: http://localhost:8001
+
 **PostgreSQL 16.1:**
 
 ```
@@ -151,6 +169,83 @@ Port: 1433
 Username: sa
 Password: (MSSQL_SA_PASSWORD from .env)
 ```
+
+## PostgresML
+
+[PostgresML](https://postgresml.org/) brings machine learning capabilities directly into PostgreSQL. It ships as an
+all-in-one Docker image that bundles the `pgml` extension, a pre-loaded `postgresml` database, and a web dashboard for
+running and monitoring ML workloads — without any additional infrastructure.
+
+### What you can do with PostgresML
+
+- **Train & run models in SQL** — supervised learning, regression, classification directly via SQL functions
+- **Embeddings & vector search** — generate and query embeddings using built-in sentence transformers
+- **LLM inference** — run large language models (e.g. Llama, Mistral) through `pgml.transform()`
+- **pgvector integration** — native `vector` type for similarity search
+
+### Starting the service
+
+```bash
+docker-compose up -d postgresml210
+```
+
+The configuration in docker-compose.yml is equivalent to ``docker run -it -v postgresml_data:/var/lib/postgresql -p 5434:5432 -p 8001:8000 ghcr.io/postgresml/postgresml:2.10.0 sudo -u postgresml psql -d postgresml``.
+
+The container starts an interactive `psql` session as the user defined by `POSTGRESML_USER`. Because it uses a
+pseudo-TTY (`tty: true`), attach to it with:
+
+```bash
+docker attach postgresml210
+```
+
+Or open an independent psql session:
+
+```bash
+docker exec -it postgresml210 psql -U postgresml -d postgresml
+```
+
+### Ports
+
+| Port (host) | Port (container) | Purpose              |
+|-------------|------------------|----------------------|
+| `5434`      | `5432`           | PostgreSQL           |
+| `8001`      | `8000`           | Dashboard / REST API |
+
+### Dashboard
+
+Open **http://localhost:8001** in a browser to access the PostgresML web dashboard. It provides:
+
+- A query editor for running `pgml.*` functions interactively
+- Model training and deployment views
+- Real-time inference monitoring
+
+### Quick start (SQL)
+
+```sql
+-- Generate an embedding
+SELECT pgml.embed('sentence-transformers/all-MiniLM-L6-v2', 'Hello, world!');
+
+-- Train a simple regression model
+SELECT pgml.train(
+    project_name => 'my_model',
+    task         => 'regression',
+    relation_name => 'my_table',
+    y_column_name => 'target'
+);
+
+-- Run inference
+SELECT pgml.predict('my_model', ARRAY[1.0, 2.0, 3.0]);
+```
+
+### Environment variable
+
+| Variable           | Default      | Description                                      |
+|--------------------|--------------|--------------------------------------------------|
+| `POSTGRESML_USER`  | `postgresml` | OS user used to run the initial `psql` command   |
+
+### Persistent data
+
+Data is stored in the `postgresml_data` named volume mounted at `/var/lib/postgresql`.
 
 ## PostgreSQL Extensions
 
@@ -228,6 +323,7 @@ Services are configured with resource limits to prevent system overload:
 
 All service data is stored in named Docker volumes:
 
+- `postgresml_data` - PostgresML 2.10 data
 - `pgdata161` - PostgreSQL 16.1 data
 - `pgdata1316` - PostgreSQL 13.16 data
 - `mssql2019` - MS SQL Server data
@@ -286,6 +382,9 @@ docker-compose up -d <service_name>
 
 ## References
 
+- [PostgresML Documentation](https://postgresml.org/docs)
+- [PostgresML GitHub](https://github.com/postgresml/postgresml)
+- [PostgresML Docker Hub (GHCR)](https://github.com/postgresml/postgresml/pkgs/container/postgresml)
 - [PostgreSQL Docker Setup](https://www.baeldung.com/ops/postgresql-docker-setup)
 - [PostgreSQL Docker Official Image](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)
 - [PostgreSQL Docker Hub](https://hub.docker.com/_/postgres)
