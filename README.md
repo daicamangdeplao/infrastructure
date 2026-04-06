@@ -19,6 +19,7 @@ individually or together based on your needs.
 | **Nexus**            | 3 (latest)       | 8111           | Artifact repository manager                      |
 | **SonarQube**        | 25.9.0.112764    | 9000           | Code quality and security scanner                |
 | **RabbitMQ**         | 4.2.3-management | 5672, 15672    | Message broker with management UI                |
+| **Ceph**             | Pacific (v16)    | 6789, 6800, 8080 | Distributed storage system (S3-compatible RGW) |
 
 ## Prerequisites
 
@@ -42,6 +43,12 @@ POSTGRES_PASSWORD=your_postgres_password
 ACCEPT_EULA=Y
 MSSQL_SA_PASSWORD=YourStrong@Passw0rd
 MSSQL_PID=Developer
+
+# Ceph Demo Configuration
+CEPH_DEMO_UID=demo
+CEPH_DEMO_ACCESS_KEY=demo_access_key
+CEPH_DEMO_SECRET_KEY=demo_secret_key
+CEPH_DEMO_BUCKET=demo
 
 # PgAdmin Configuration (if enabled)
 # PGADMIN_DEFAULT_EMAIL=admin@example.com
@@ -116,6 +123,9 @@ docker-compose up -d sonarqube
 
 # RabbitMQ only
 docker-compose up -d rabbitmq
+
+# Ceph only
+docker-compose up -d ceph
 ```
 
 #### Custom Combinations
@@ -293,6 +303,14 @@ This ensures the extension is created automatically when your application initia
 - Default credentials: rabbitmq / rabbitmq
 - AMQP Port: 5672
 
+**Ceph:**
+
+- S3-compatible RGW endpoint: http://localhost:8080
+- Monitor port: 6789
+- Access key / Secret key: from `.env` (`CEPH_DEMO_ACCESS_KEY` / `CEPH_DEMO_SECRET_KEY`)
+- Default bucket: `demo`
+- ⏱️ Takes 1-2 minutes to bootstrap on first start
+
 ## Health Checks
 
 All services include health checks. Monitor service health:
@@ -330,6 +348,8 @@ All service data is stored in named Docker volumes:
 - `nexus-data` - Nexus repository data
 - `sonarqube_extensions` - SonarQube plugins and extensions
 - `rabbitmq-data` - RabbitMQ data
+- `ceph-data` - Ceph cluster data
+- `ceph-logs` - Ceph logs
 
 List volumes:
 
@@ -392,3 +412,5 @@ docker-compose up -d <service_name>
 - [Nexus Repository Docker](https://hub.docker.com/r/sonatype/nexus3)
 - [SonarQube Docker](https://hub.docker.com/_/sonarqube)
 - [RabbitMQ Docker](https://hub.docker.com/_/rabbitmq)
+- [Ceph Daemon Image](https://quay.io/repository/ceph/daemon)
+- [Ceph Docker Hub](https://hub.docker.com/r/ceph/ceph)
